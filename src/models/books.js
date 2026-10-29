@@ -12,4 +12,14 @@ const getAllBooks = async () => {
   return books;
 };
 
-export { getAllBooks };
+const getBookById = async (bookId) => {
+  const database = getDb();
+
+  const book = await database
+    .collection('books')
+    .findOne({ id: bookId }, { projection: { _id: 0 } });
+
+  return book;
+};
+
+export { getAllBooks, getBookById };
