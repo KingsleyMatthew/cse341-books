@@ -1,0 +1,39 @@
+# Week 01 Reflection
+
+1. Include a link to one of your Pull Requests (PRs) at GitHub. (It should be merged and closed at this point.)
+
+GitHub Pull Request Link: https://github.com/KingsleyMatthew/cse341-books/pull/6
+
+2. Include a link to one of your Issues at GitHub. (It should be closed at this point.)
+
+GitHub Issue Link:  https://github.com/KingsleyMatthew/cse341-books/issues/2
+
+3. Which issue took more or less time than expected? Why?
+
+Answer: Issue 3 (GET /books/:id) took less time than expected, while the MongoDB connection work before Issue 2 took more. Issue 3 was fast because my Version 2 spec already defined the 200, 404, and 500 responses with exact JSON, so I only added getBookById() with findOne({ id: bookId }), one handler with a !book check, and router.get('/books/:id', ...). The MVC pattern from GET /books carried over directly. The connection work took longer because the errors kept changing (authentication failed, then ENOTFOUND, then an SSL alert) and each came from Atlas settings or my network, not my code.
+
+4. Include a link to your walk-though video. (It must include your name, show your web service working at Render, explain the way your `Get Single Book` controller works, and discuss status codes.):
+
+Video link:
+
+5.a. Include a GitHub link to a file that shows how your app uses sensitive data, such as the MongoDB connection string.
+
+GitHub link: https://github.com/KingsleyMatthew/cse341-books/blob/main/src/db/connect.js
+
+5.b. How did you store sensitive data? Why is that approach important?
+
+Answer: I stored the MongoDB connection string in a local .env file as MONGODB_URI and never wrote it in the code. In src/db/connect.js, the app reads it with process.env.MONGODB_URI and throws 'MONGODB_URI is required.' if it’s missing. The dev and start scripts in package.json load the file with --env-file=.env, and .gitignore lists .env so it never reaches GitHub. My spec planned this too: its security section says to keep credentials in environment variables only, and its error rules say clients never see connection strings or database details. In the deployed app, I set MONGODB_URI and MONGODB_DB_NAME in Render’s environment settings instead of uploading a .env file.
+
+This approach is important because the connection string includes my database username and password. If it were committed, anyone who could see the repository could read or change my data, and removing it later doesn’t erase it from Git history. Keeping it in the environment also lets the same code use different databases locally and in production.
+
+6.a. Include a GitHub link to a file that shows one other implementation decision you made.
+
+GitHub link: https://github.com/KingsleyMatthew/cse341-books/blob/main/src/models/books.js
+
+6.b. What decision does this file show, and why did you make that choice?
+
+Answer: src/models/books.js shows my decision to control exactly what the database returns. Both getAllBooks() and getBookById() use { projection: { _id: 0 } }, so MongoDB’s internal _id never leaves the model, and getAllBooks() also sorts with .sort({ title: 1 }). The issue only said to use find({}) and findOne({ id: bookId }). I added these because my Version 2 spec says each book has only id, author, title, and publicationDate, and that list order should be predictable. Without the projection, the API would return a fourth field that clients don’t need and that exposes internal database details. Without the sort, the order of /books could change between calls. In the deployed app, GET /books returns the three seed books in the same title order every time, with no _id. The choice keeps the API response matching the spec, so a client developer can rely on it.
+
+7. What is one specific habit or process you will work on for next week?
+
+Answer: Next week I will run every item in each issue’s Test Plan myself, on both localhost and the deployed app, and paste the curl output into my pull request, so I catch connection and configuration problems before they become blockers.
