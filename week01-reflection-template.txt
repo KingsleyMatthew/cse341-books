@@ -14,7 +14,7 @@ Answer: Issue 3 (GET /books/:id) took less time than expected, while the MongoDB
 
 4. Include a link to your walk-though video. (It must include your name, show your web service working at Render, explain the way your `Get Single Book` controller works, and discuss status codes.):
 
-Video link:
+Video link: https://www.loom.com/share/f0e5b05994d74af1a10b986f2dcff9c1
 
 5.a. Include a GitHub link to a file that shows how your app uses sensitive data, such as the MongoDB connection string.
 
