@@ -2,6 +2,7 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './swagger.json' with { type: 'json' };
 import router from './src/router.js';
+import { notFoundHandler, errorHandler } from './src/middleware/errors.js';
 
 const app = express();
 
@@ -14,5 +15,8 @@ app.get('/', (req, res) => {
 });
 
 app.use(router);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

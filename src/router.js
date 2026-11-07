@@ -1,4 +1,11 @@
 import express from 'express';
+import {
+  getAuthorsHandler,
+  getAuthorByIdHandler,
+  createAuthorHandler,
+  updateAuthorHandler,
+  deleteAuthorHandler
+} from './controllers/authors.js';
 import { getBooksHandler, getBookByIdHandler } from './controllers/books.js';
 
 const router = express.Router();
@@ -7,6 +14,39 @@ const router = express.Router();
  * @openapi
  * components:
  *   schemas:
+ *     Author:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - birthYear
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: a1
+ *         name:
+ *           type: string
+ *           example: Maya Rivera
+ *         birthYear:
+ *           type: integer
+ *           description: Whole number from 1 to the current year
+ *           example: 1985
+ *     AuthorUpdate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - birthYear
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Optional. If included, it must match the id in the URL.
+ *           example: a4
+ *         name:
+ *           type: string
+ *           example: Lena Hoffmann-Reyes
+ *         birthYear:
+ *           type: integer
+ *           example: 1982
  *     Book:
  *       type: object
  *       required:
@@ -37,14 +77,237 @@ const router = express.Router();
 
 /**
  * @openapi
+ * /authors:
+ *   get:
+ *     summary: Get all authors
+ *     description: Returns all authors sorted by name.
+ *     tags:
+ *       - Authors
+ *     responses:
+ *       200:
+ *         description: A list of authors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Author'
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.get('/authors', getAuthorsHandler);
+
+/**
+ * @openapi
+ * /authors/{id}:
+ *   get:
+ *     summary: Get one author by id
+ *     tags:
+ *       - Authors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The custom id of the author (for example, a1)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Author returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Author'
+ *       404:
+ *         description: Author not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Author not found
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.get('/authors/:id', getAuthorByIdHandler);
+
+/**
+ * @openapi
+ * /authors:
+ *   post:
+ *     summary: Create an author
+ *     tags:
+ *       - Authors
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Author'
+ *           example:
+ *             id: a4
+ *             name: Lena Hoffmann
+ *             birthYear: 1982
+ *     responses:
+ *       201:
+ *         description: Author created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Invalid JSON, or a required field is missing or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: id, name, and birthYear are required and must be valid
+ *       409:
+ *         description: An author with this id already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: An author with this id already exists
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.post('/authors', createAuthorHandler);
+
+/**
+ * @openapi
+ * /authors/{id}:
+ *   put:
+ *     summary: Update an author
+ *     description: Replaces the author's name and birth year. Both fields are required.
+ *     tags:
+ *       - Authors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The custom id of the author to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AuthorUpdate'
+ *           example:
+ *             name: Lena Hoffmann-Reyes
+ *             birthYear: 1982
+ *     responses:
+ *       200:
+ *         description: Author updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Invalid JSON, missing or invalid field, or body id does not match the URL id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: name and birthYear are required and must be valid
+ *       404:
+ *         description: Author not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Author not found
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.put('/authors/:id', updateAuthorHandler);
+
+/**
+ * @openapi
+ * /authors/{id}:
+ *   delete:
+ *     summary: Delete an author
+ *     description: Deletes an author only if no book still references them.
+ *     tags:
+ *       - Authors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The custom id of the author to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Author deleted successfully (no response body)
+ *       404:
+ *         description: Author not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Author not found
+ *       409:
+ *         description: Author still has books and cannot be deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Author still has books and cannot be deleted
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.delete('/authors/:id', deleteAuthorHandler);
+
+/**
+ * @openapi
  * /books:
  *   get:
  *     summary: Get all books
+ *     description: Returns all books sorted by title.
  *     tags:
  *       - Books
  *     responses:
  *       200:
- *         description: A list of books, sorted by title
+ *         description: A list of books
  *         content:
  *           application/json:
  *             schema:
