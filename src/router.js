@@ -1,5 +1,6 @@
 import express from 'express';
 import { getBooksHandler, getBookByIdHandler } from './controllers/books.js';
+import { getAuthorsHandler } from './controllers/authors.js';
 
 const router = express.Router();
 
@@ -28,12 +29,57 @@ const router = express.Router();
  *           type: string
  *           description: ISO 8601 date (YYYY-MM-DD)
  *           example: '2021-08-17'
+ *     Author:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - birthYear
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: a1
+ *         name:
+ *           type: string
+ *           example: Maya Rivera
+ *         birthYear:
+ *           type: integer
+ *           description: Whole number from 1 to the current year
+ *           example: 1985
  *     ErrorMessage:
  *       type: object
  *       properties:
  *         message:
  *           type: string
  */
+
+/**
+ * @openapi
+ * /authors:
+ *   get:
+ *     summary: Get all authors
+ *     description: Returns all authors sorted by name.
+ *     tags:
+ *       - Authors
+ *     responses:
+ *       200:
+ *         description: A list of authors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Author'
+ *       500:
+ *         description: Unexpected server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: Internal server error
+ */
+router.get('/authors', getAuthorsHandler);
 
 /**
  * @openapi
