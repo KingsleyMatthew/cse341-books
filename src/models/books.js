@@ -22,4 +22,31 @@ const getBookById = async (bookId) => {
   return book;
 };
 
-export { getAllBooks, getBookById };
+const createBook = async (book) => {
+  const database = getDb();
+
+  // Insert a copy because the driver adds an _id field to the object it receives.
+  const result = await database.collection('books').insertOne({ ...book });
+
+  return result;
+};
+
+const updateBook = async (bookId, book) => {
+  const database = getDb();
+
+  const result = await database
+    .collection('books')
+    .updateOne({ id: bookId }, { $set: book });
+
+  return result;
+};
+
+const deleteBook = async (bookId) => {
+  const database = getDb();
+
+  const result = await database.collection('books').deleteOne({ id: bookId });
+
+  return result;
+};
+
+export { getAllBooks, getBookById, createBook, updateBook, deleteBook };
